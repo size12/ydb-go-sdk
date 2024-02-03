@@ -30,9 +30,3 @@ jobs:
           cache: true
       - name: Test
         run: go test -race -coverprofile unit.txt -covermode atomic -test.run ^\QTestTopicStreamReaderImpl_ReadMessages\E$ ./...
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./unit.txt
-          flags: unit,${{ matrix.os }},go-${{ matrix.go-version }}
-          name: unit
