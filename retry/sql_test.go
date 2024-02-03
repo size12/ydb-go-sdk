@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package retry
 
 import (
@@ -28,12 +25,14 @@ var _ driver.Connector = &mockConnector{}
 
 func (m *mockConnector) Open(name string) (driver.Conn, error) {
 	m.t.Log(stack.Record(0))
+
 	return nil, driver.ErrSkip
 }
 
 func (m *mockConnector) Connect(ctx context.Context) (driver.Conn, error) {
 	m.t.Log(stack.Record(0))
 	m.conns++
+
 	return &mockConn{
 		t:        m.t,
 		queryErr: m.queryErr,
@@ -43,6 +42,7 @@ func (m *mockConnector) Connect(ctx context.Context) (driver.Conn, error) {
 
 func (m *mockConnector) Driver() driver.Driver {
 	m.t.Log(stack.Record(0))
+
 	return m
 }
 
@@ -63,6 +63,7 @@ var (
 
 func (m *mockConn) Prepare(query string) (driver.Stmt, error) {
 	m.t.Log(stack.Record(0))
+
 	return nil, driver.ErrSkip
 }
 
@@ -71,6 +72,7 @@ func (m *mockConn) PrepareContext(ctx context.Context, query string) (driver.Stm
 	if m.closed {
 		return nil, driver.ErrBadConn
 	}
+
 	return &mockStmt{
 		t:     m.t,
 		conn:  m,
@@ -81,11 +83,13 @@ func (m *mockConn) PrepareContext(ctx context.Context, query string) (driver.Stm
 func (m *mockConn) Close() error {
 	m.t.Log(stack.Record(0))
 	m.closed = true
+
 	return nil
 }
 
 func (m *mockConn) Begin() (driver.Tx, error) {
 	m.t.Log(stack.Record(0))
+
 	return nil, driver.ErrSkip
 }
 
@@ -94,6 +98,7 @@ func (m *mockConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.T
 	if m.closed {
 		return nil, driver.ErrBadConn
 	}
+
 	return m, nil
 }
 
@@ -102,6 +107,7 @@ func (m *mockConn) QueryContext(ctx context.Context, query string, args []driver
 	if xerrors.MustDeleteSession(m.execErr) {
 		m.closed = true
 	}
+
 	return nil, m.queryErr
 }
 
@@ -110,16 +116,19 @@ func (m *mockConn) ExecContext(ctx context.Context, query string, args []driver.
 	if xerrors.MustDeleteSession(m.execErr) {
 		m.closed = true
 	}
+
 	return nil, m.execErr
 }
 
 func (m *mockConn) Commit() error {
 	m.t.Log(stack.Record(0))
+
 	return nil
 }
 
 func (m *mockConn) Rollback() error {
 	m.t.Log(stack.Record(0))
+
 	return nil
 }
 
@@ -137,31 +146,37 @@ var (
 
 func (m *mockStmt) Close() error {
 	m.t.Log(stack.Record(0))
+
 	return nil
 }
 
 func (m *mockStmt) NumInput() int {
 	m.t.Log(stack.Record(0))
+
 	return -1
 }
 
 func (m *mockStmt) Exec(args []driver.Value) (driver.Result, error) {
 	m.t.Log(stack.Record(0))
+
 	return nil, driver.ErrSkip
 }
 
 func (m *mockStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
 	m.t.Log(stack.Record(0))
+
 	return m.conn.ExecContext(ctx, m.query, args)
 }
 
 func (m *mockStmt) Query(args []driver.Value) (driver.Rows, error) {
 	m.t.Log(stack.Record(0))
+
 	return nil, driver.ErrSkip
 }
 
 func (m *mockStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
 	m.t.Log(stack.Record(0))
+
 	return m.conn.QueryContext(ctx, m.query, args)
 }
 
@@ -194,6 +209,7 @@ func TestDoTx(t *testing.T) {
 							defer func() {
 								_ = rows.Close()
 							}()
+
 							return rows.Err()
 						},
 						WithIdempotent(bool(idempotentType)),
@@ -203,8 +219,10 @@ func TestDoTx(t *testing.T) {
 							//nolint:lll
 							OnRetry: func(info trace.RetryLoopStartInfo) func(trace.RetryLoopIntermediateInfo) func(trace.RetryLoopDoneInfo) {
 								t.Logf("attempt %d, conn %d, mode: %+v", attempts, m.conns, Check(m.queryErr))
+
 								return func(info trace.RetryLoopIntermediateInfo) func(trace.RetryLoopDoneInfo) {
 									t.Logf("attempt %d, conn %d, mode: %+v", attempts, m.conns, Check(m.queryErr))
+
 									return nil
 								}
 							},
