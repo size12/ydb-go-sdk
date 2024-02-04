@@ -473,7 +473,8 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 			e.stream.EXPECT().Send(gomock.Any()).Return(nil).MinTimes(1)
 
 			e.Start()
-			waitChangeRestBufferSizeBytes(e.reader, 0)
+			waitChangeRestBufferSizeBytes(e.reader, 0) // вот тут мб упал тест
+			t.Log("Done 1st change")
 
 			const dataSize = 1000
 			e.SendFromServer(&rawtopicreader.ReadResponse{BytesSize: dataSize, PartitionData: []rawtopicreader.PartitionData{
@@ -502,7 +503,9 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 					},
 				},
 			}})
-			waitChangeRestBufferSizeBytes(e.reader, e.initialBufferSizeBytes)
+			waitChangeRestBufferSizeBytes(e.reader, e.initialBufferSizeBytes) // либо тут
+			t.Log("Done 2nd change")
+
 			expectedBufferSizeAfterReceiveMessages := e.initialBufferSizeBytes - dataSize
 			require.Equal(t, expectedBufferSizeAfterReceiveMessages, e.reader.restBufferSizeBytes.Load())
 
@@ -511,14 +514,15 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 			_, err := e.reader.ReadMessageBatch(e.ctx, oneOption)
 			require.NoError(t, err)
 
-			waitChangeRestBufferSizeBytes(e.reader, expectedBufferSizeAfterReceiveMessages)
-
+			waitChangeRestBufferSizeBytes(e.reader, expectedBufferSizeAfterReceiveMessages) // оибо тут
+			t.Log("Done 3rd change")
 			bufferSizeAfterReadOneMessage := e.reader.restBufferSizeBytes.Load()
 
 			_, err = e.reader.ReadMessageBatch(e.ctx, newReadMessageBatchOptions())
 			require.NoError(t, err)
 
-			waitChangeRestBufferSizeBytes(e.reader, bufferSizeAfterReadOneMessage)
+			waitChangeRestBufferSizeBytes(e.reader, bufferSizeAfterReadOneMessage) // либо тут
+			t.Log("Done 4th change")
 			require.Equal(t, e.initialBufferSizeBytes, e.reader.restBufferSizeBytes.Load())
 		})
 
