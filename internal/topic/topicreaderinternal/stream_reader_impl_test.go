@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"runtime"
 	"testing"
 	"time"
 
@@ -453,6 +454,9 @@ func TestStreamReaderImpl_OnPartitionCloseHandle(t *testing.T) {
 
 func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 	t.Run("BufferSize", func(t *testing.T) {
+
+		runtime.Gosched()
+
 		waitChangeRestBufferSizeBytes := func(r *topicStreamReaderImpl, old int64) {
 			xtest.SpinWaitCondition(t, nil, func() bool {
 				return r.restBufferSizeBytes.Load() != old
@@ -471,8 +475,6 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 
 			// doesn't check sends
 			e.stream.EXPECT().Send(gomock.Any()).Return(nil).MinTimes(1)
-
-			t.Fatalf("panic in paradise!")
 
 			e.Start()
 			waitChangeRestBufferSizeBytes(e.reader, 0) // вот тут мб упал тест
