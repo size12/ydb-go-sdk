@@ -509,21 +509,21 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 			expectedBufferSizeAfterReceiveMessages := e.initialBufferSizeBytes - dataSize
 			require.Equal(t, expectedBufferSizeAfterReceiveMessages, e.reader.restBufferSizeBytes.Load())
 
-			//oneOption := newReadMessageBatchOptions()
-			//oneOption.MaxCount = 1
-			//_, err := e.reader.ReadMessageBatch(e.ctx, oneOption)
-			//require.NoError(t, err)
-			//
-			//waitChangeRestBufferSizeBytes(e.reader, expectedBufferSizeAfterReceiveMessages) // оибо тут
-			//t.Log("Done 3rd change")
-			//bufferSizeAfterReadOneMessage := e.reader.restBufferSizeBytes.Load()
-			//
-			//_, err = e.reader.ReadMessageBatch(e.ctx, newReadMessageBatchOptions())
-			//require.NoError(t, err)
-			//
-			//waitChangeRestBufferSizeBytes(e.reader, bufferSizeAfterReadOneMessage) // либо тут
-			//t.Log("Done 4th change")
-			//require.Equal(t, e.initialBufferSizeBytes, e.reader.restBufferSizeBytes.Load())
+			oneOption := newReadMessageBatchOptions()
+			oneOption.MaxCount = 1
+			_, err := e.reader.ReadMessageBatch(e.ctx, oneOption)
+			require.NoError(t, err)
+
+			waitChangeRestBufferSizeBytes(e.reader, expectedBufferSizeAfterReceiveMessages) // оибо тут
+			t.Log("Done 3rd change")
+			bufferSizeAfterReadOneMessage := e.reader.restBufferSizeBytes.Load()
+
+			_, err = e.reader.ReadMessageBatch(e.ctx, newReadMessageBatchOptions())
+			require.NoError(t, err)
+
+			waitChangeRestBufferSizeBytes(e.reader, bufferSizeAfterReadOneMessage) // либо тут
+			t.Log("Done 4th change")
+			require.Equal(t, e.initialBufferSizeBytes, e.reader.restBufferSizeBytes.Load())
 		})
 
 		xtest.TestManyTimesWithName(t, "ForceReturnBatchIfBufferFull", func(t testing.TB) {
