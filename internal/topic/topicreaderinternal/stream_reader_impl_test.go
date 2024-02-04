@@ -472,6 +472,8 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 			// doesn't check sends
 			e.stream.EXPECT().Send(gomock.Any()).Return(nil).MinTimes(1)
 
+			t.Fatalf("panic in paradise!")
+
 			e.Start()
 			waitChangeRestBufferSizeBytes(e.reader, 0) // вот тут мб упал тест
 
