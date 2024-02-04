@@ -9,7 +9,7 @@ import (
 	"github.com/ydb-platform/ydb-go-sdk/v3/internal/empty"
 )
 
-const commonWaitTimeout = time.Second
+const commonWaitTimeout = 500 * time.Microsecond
 
 func WaitGroup(tb testing.TB, wg *sync.WaitGroup) {
 	tb.Helper()
