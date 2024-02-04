@@ -476,6 +476,8 @@ func TestTopicStreamReaderImpl_ReadMessages(t *testing.T) {
 			waitChangeRestBufferSizeBytes(e.reader, 0) // вот тут мб упал тест
 			t.Log("Done 1st change")
 
+			panic("PANIC IN PARADISE!")
+
 			const dataSize = 1000
 			e.SendFromServer(&rawtopicreader.ReadResponse{BytesSize: dataSize, PartitionData: []rawtopicreader.PartitionData{
 				{
